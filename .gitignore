@@ -2,3 +2,10 @@
 __pycache__/
 *.pyc
 /tmp/
+
+# Personal data — NEVER commit to this public repo
+my_whoop_data_*/
+*whoop*
+*.csv
+/vault/
+/private/

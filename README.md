@@ -98,9 +98,25 @@ From here, let Claude run the interview and build your protocol — that's what 
 
 ## Gotchas (read these — they'll save you an hour)
 
-- **300 sources per notebook.** NotebookLM's hard cap. The loader enforces it: if a channel has more (Huberman has 400+), it loads the **300 most recent**. For full coverage, split across multiple notebooks.
-- **Keep `--concurrency` low (~6).** High concurrency floods NotebookLM's per-source confirmation step, so the loader prints false `FAIL` lines even though the sources *are* added. Always confirm the real count with `nlm source list <id> | grep -c '"id"'` rather than trusting the OK/FAIL tally.
+- **Source cap is per *tier*: free = 50, NotebookLM Plus/Pro = 300 sources per notebook.** This is the single biggest trap. If you load 300 on a *free* account, the first ~50 ingest and the rest show up as **red, empty rows** — it looks like a bug but it's the tier limit. The loader defaults to `--count 300` (the Plus number); on free, use `--count 50`. For full coverage on free, split a big channel across multiple notebooks and query them together with `nlm cross`.
+
+- **Make sure BOTH logins are the same, correct account.** `nlm login` (read) and `notebooklm login` (write) authenticate independently and each defaults to whatever Google account your browser is already signed into — so they can silently land on *different* accounts, or on a free account when your Plus is elsewhere. Verify: `nlm login profile list` and `notebooklm auth check`. To switch: `nlm login --clear` (fresh browser → pick the right account) and `notebooklm auth logout && rm -rf ~/.notebooklm/browser_profile && notebooklm login`.
+
+- **Reds = failed adds; you can spot and repair them.** A failed source keeps the raw **URL as its title** (NotebookLM never fetched the video). Higher `--concurrency` causes more of them (an ingest race), even on Plus — at `--concurrency 1` they essentially disappear. To repair: delete the red rows and re-add at low concurrency.
+  ```bash
+  NB=<notebook-id>
+  # delete every red row (title is a URL)
+  nlm source list $NB --json | python3 -c "import json,sys;[print(s['id']) for s in json.load(sys.stdin) if s['title'].strip().startswith('http')]" \
+    | while read id; do nlm source delete "$id" --confirm; done
+  # then re-add the missing videos at --concurrency 1
+  ```
+  Verify the real good/red split anytime:
+  ```bash
+  nlm source list $NB --json | python3 -c "import json,sys;d=json.load(sys.stdin);r=[s for s in d if s['title'].strip().startswith('http')];print(f'good {len(d)-len(r)}  red {len(r)}')"
+  ```
+
 - **`nlm` sessions are short (~20 min).** If queries start failing with auth errors, just re-run `nlm login`. The `notebooklm` (write) session lasts weeks.
+
 - **Processing lag.** After upload, NotebookLM indexes each transcript server-side (a few minutes). Early queries may be thin until processing finishes.
 
 ---
@@ -114,6 +130,7 @@ Fixes that make it work as of mid-2026:
 - **Lower default concurrency (20 → 6)** so success/failure reporting is honest, plus a documented warning about the false-failure behavior.
 - **Corrected auth docs:** the current `nlm` CLI uses `nlm login`, not `nlm auth login`.
 - **Install via `uv tool`** (isolated, PEP-668-safe) and run the loader via `uv run --with` instead of assuming a `~/projects/notebooklm-loader` virtualenv.
+- **Documented the real-world traps** that the original glossed over: the per-tier source cap (free 50 / Plus 300), the two-logins-must-match-account pitfall, and how to detect & repair red (failed) sources. See [Gotchas](#gotchas-read-these--theyll-save-you-an-hour).
 
 ---
 

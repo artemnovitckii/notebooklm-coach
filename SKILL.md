@@ -112,9 +112,13 @@ uv run --with "notebooklm-py[browser]" python3 scripts/load_channel.py load \
   --concurrency 6
 ```
 
-> **NotebookLM caps a notebook at 300 sources.** The loader enforces this — if a channel has more (Huberman has 400+), it loads the 300 most recent.
+> **Source cap depends on tier: free = 50, NotebookLM Plus/Pro = 300 per notebook.** `--count 300` assumes Plus/Pro. On a free account only ~50 ingest and the rest become red, empty rows — use `--count 50` there. Confirm both `nlm` and `notebooklm` are logged into the *same* account with that tier (`notebooklm auth check`).
 >
-> **Keep `--concurrency` low (~6).** Higher values flood NotebookLM's per-source confirmation step and make the loader report false `FAIL`s even though the sources are added. After loading, verify the true count with `nlm source list <notebook-id> --json | grep -c '"id"'`.
+> **Keep `--concurrency` low.** Higher concurrency causes some adds to fail (red rows whose title is the raw URL), even on Plus. At `--concurrency 1` they essentially disappear. After loading, check the real split:
+> ```bash
+> nlm source list <notebook-id> --json | python3 -c "import json,sys;d=json.load(sys.stdin);r=[s for s in d if s['title'].strip().startswith('http')];print(f'good {len(d)-len(r)}  red {len(r)}')"
+> ```
+> To repair reds: delete the red rows (`nlm source delete <id> --confirm`) and re-add those videos at `--concurrency 1`.
 
 ### 3. Ask expert-informed questions
 

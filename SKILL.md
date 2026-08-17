@@ -17,7 +17,28 @@ Turn any expert's content into a personalized protocol with experiments you actu
 4. **Experiments in Obsidian.** Protocol becomes experiments in your daily note. Morning routine skill asks every day: how is this going?
 5. **Any expert, any domain.** Huberman for health. Lenny for product. Onboarding docs for a new job. Same pattern.
 
+## Step 0: Preflight (run this first, every time)
+
+Before any workflow below, check the tools are installed and logged in:
+
+```bash
+bash ~/.claude/skills/notebooklm/scripts/bootstrap.sh --check
+```
+
+Exit `0` = ready. Exit `2` = something missing; the output names exactly what.
+To install whatever is missing, re-run without `--check`:
+
+```bash
+bash ~/.claude/skills/notebooklm/scripts/bootstrap.sh
+```
+
+The two `login` commands are the only manual steps — they open a browser for Google
+sign-in, so never run them from a tool call. Print them for the user instead.
+
 ## Prerequisites
+
+> Handled automatically by `scripts/bootstrap.sh` above. This section documents what
+> it installs, for anyone who prefers to do it by hand.
 
 ### 1. Install nlm CLI
 

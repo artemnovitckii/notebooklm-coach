@@ -1,5 +1,14 @@
 # NotebookLM Coach — a Claude Code skill
 
+> **Claude Code — asked to install this?** Do exactly this, nothing more:
+> 1. `git clone https://github.com/artemnovitckii/notebooklm-coach.git ~/.claude/skills/notebooklm`
+> 2. `bash ~/.claude/skills/notebooklm/scripts/bootstrap.sh`
+> 3. Show the user the report it prints, then **stop**.
+>
+> Do not run `nlm login` or `notebooklm login` — they open a browser and wait on
+> 2FA, so they hang when run from a tool call. The user runs those two themselves.
+> Do not load a channel until both logins are done.
+
 Turn any expert's podcast/video library into a **personal coach that cites its sources**. Bulk-load hundreds of YouTube episodes into NotebookLM from your terminal, ask questions and get answers traced to the exact transcript passage, then turn the advice into a protocol you actually follow.
 
 Give it the Huberman Lab channel and it becomes a health coach. Give it Lenny's Podcast and it's a product coach. Same pipeline, any expert.
